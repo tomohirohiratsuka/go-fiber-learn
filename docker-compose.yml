@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  app:
+    container_name: app
+    build:
+      context: .
+      dockerfile: ./docker/go/Dockerfile
+      target: development
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+
+  mongo:
+    container_name: mongodb
+    image: mongo:7
+    restart: always
+    ports:
+      - ${MONGO_PORT}:${MONGO_PORT}
+    volumes:
+      - ./docker/mongo/mongo_data:/data/db
+      - ./docker/mongo/mongo_init.js:/docker-entrypoint-initdb.d/mongo_init.js
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    env_file:
+      - .env
+    command: mongod --auth --slowms=100 --profile=1
